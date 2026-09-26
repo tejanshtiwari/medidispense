@@ -117,7 +117,7 @@ npm run dev
 The application will normally be available at:
 
 ```text
-http://localhost:3000
+https://medidispense-phi.vercel.app/
 ```
 
 ## Current status
