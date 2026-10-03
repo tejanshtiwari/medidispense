@@ -193,5 +193,20 @@ export function DispenseView() {
             )}
           </div>
 
-          <button
+                   <button
             type="button"
+            onClick={handleDispense}
+            disabled={!canDispense}
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:opacity-50"
+          >
+            Authorize &amp; Dispense
+          </button>
+        </div>
+      </section>
+
+      {activeLog && (
+        <DispenseModal log={activeLog} onClose={() => setActiveLog(null)} />
+      )}
+    </div>
+  )
+}
