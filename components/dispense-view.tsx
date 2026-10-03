@@ -25,7 +25,16 @@ export function DispenseView() {
     })
   }
 
-  const canDispense = totalItems > 0 && patientValue.trim().length > 0
+  
+  const isPatientIdValid = useMemo(() => {
+    const cleaned = patientValue.trim()
+    if (patientMode === 'phone') {
+      return cleaned.length === 10 // Must be exactly 10 numeric units
+    }
+    return cleaned.length > 0 // Standard check fallback for ABHA ID
+  }, [patientValue, patientMode])
+
+  const canDispense = totalItems > 0 && isPatientIdValid
 
   function handleDispense() {
     if (!canDispense) return
@@ -38,6 +47,12 @@ export function DispenseView() {
     setActiveLog(log)
     setCart({})
     setPatientValue('')
+  }
+
+  
+  function handleModeChange(mode: 'phone' | 'abha') {
+    setPatientMode(mode)
+    setPatientValue('') 
   }
 
   return (
@@ -61,7 +76,7 @@ export function DispenseView() {
         <div className="mb-3 inline-flex rounded-lg border border-border bg-secondary p-1">
           <button
             type="button"
-            onClick={() => setPatientMode('phone')}
+            onClick={() => handleModeChange('phone')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               patientMode === 'phone'
                 ? 'bg-card text-foreground shadow-sm'
@@ -73,7 +88,7 @@ export function DispenseView() {
           </button>
           <button
             type="button"
-            onClick={() => setPatientMode('abha')}
+            onClick={() => handleModeChange('abha')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               patientMode === 'abha'
                 ? 'bg-card text-foreground shadow-sm'
@@ -89,19 +104,33 @@ export function DispenseView() {
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
             {patientMode === 'phone' ? '+91' : 'ID'}
           </span>
+          
           <input
-            type="text"
+            type={patientMode === 'phone' ? 'tel' : 'text'}
+            inputMode={patientMode === 'phone' ? 'numeric' : 'text'}
+            maxLength={patientMode === 'phone' ? 10 : undefined}
             value={patientValue}
-            onChange={(e) => setPatientValue(e.target.value)}
+            onChange={(e) => {
+              let val = e.target.value
+              if (patientMode === 'phone') {
+                // Instantly strips away text characters, spaces, and punctuation symbols
+                val = val.replace(/\D/g, '')
+              }
+              setPatientValue(val)
+            }}
             placeholder={
-              patientMode === 'phone' ? '98765 43210' : '14-1234-5678-9012'
+              patientMode === 'phone' ? '9876543210' : '14-1234-5678-9012'
             }
-            className="w-full rounded-lg border border-input bg-background py-2.5 pl-12 pr-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30"
+            className="w-full rounded-lg border border-input bg-background py-2.5 pl-12 pr-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30 font-mono tracking-wide"
           />
         </div>
+        {patientMode === 'phone' && patientValue.length > 0 && patientValue.length < 10 && (
+          <p className="mt-1.5 text-xs text-amber-600 font-medium animate-in fade-in duration-150">
+            Phone number must be exactly 10 digits ({10 - patientValue.length} remaining)
+          </p>
+        )}
       </section>
 
-      {/* Medicine grid */}
       <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
           <span className="flex size-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
@@ -197,17 +226,12 @@ export function DispenseView() {
             type="button"
             onClick={handleDispense}
             disabled={!canDispense}
-            className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/20 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:opacity-50"
           >
-            <ScanLine className="size-5" />
-            Authorize &amp; Dispense Medicine
+            Authorize &amp; Dispense
           </button>
         </div>
       </section>
 
-      {activeLog && (
-        <DispenseModal log={activeLog} onClose={() => setActiveLog(null)} />
-      )}
-    </div>
-  )
-}
+      {activeLog && (<DispenseModal log={activeLog} onClose={() => setActiveLog(null)} />
+)}
