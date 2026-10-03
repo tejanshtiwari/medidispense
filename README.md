@@ -119,6 +119,8 @@ The application will normally be available at:
 ```text
 https://medidispense-phi.vercel.app/
 ```
+To access the application link given above use credentials:
+ID: DOC-12345 and PIN: 9988
 
 ## Current status
 
