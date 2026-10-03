@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Lock, IdCard, ShieldCheck, Loader2, Stethoscope } from 'lucide-react'
+import { Lock, IdCard, ShieldCheck, Loader2, Stethoscope, AlertCircle } from 'lucide-react'
 import { useDispenser } from '@/lib/dispenser-store'
 
 export function AuthView() {
@@ -9,13 +9,25 @@ export function AuthView() {
   const [regId, setRegId] = useState('')
   const [pin, setPin] = useState('')
   const [verifying, setVerifying] = useState(false)
+  const [error, setError] = useState('') // Tracks invalid login attempts
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError('') // Reset error on new attempt
     setVerifying(true)
+    
     setTimeout(() => {
-      login(regId)
-      setVerifying(false)
+      // Define your specific testing credentials here
+      const targetRegId = "DOC-12345"
+      const targetPin = "9988"
+
+      if (regId === targetRegId && pin === targetPin) {
+        login(regId)
+        setVerifying(false)
+      } else {
+        setVerifying(false)
+        setError('Invalid Doctor Registration ID or PIN. Use the official test credentials.')
+      }
     }, 1400)
   }
 
@@ -39,6 +51,14 @@ export function AuthView() {
           className="rounded-2xl border border-border bg-card p-6 shadow-sm"
         >
           <div className="space-y-5">
+            {/* Display error alert if validation fails */}
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-destructive border border-destructive/20 animate-in fade-in zoom-in-95 duration-200">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                <p className="text-xs font-medium text-pretty">{error}</p>
+              </div>
+            )}
+
             <div>
               <label
                 htmlFor="regId"
@@ -54,7 +74,7 @@ export function AuthView() {
                   required
                   value={regId}
                   onChange={(e) => setRegId(e.target.value)}
-                  placeholder="e.g. MH-DOC-20481"
+                  placeholder="e.g. DOC-12345"
                   className="w-full rounded-lg border border-input bg-background py-2.5 pl-10 pr-3 text-sm text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30"
                 />
               </div>
@@ -76,7 +96,7 @@ export function AuthView() {
                   inputMode="numeric"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  placeholder="••••••"
+                  placeholder="e.g. 9988"
                   className="w-full rounded-lg border border-input bg-background py-2.5 pl-10 pr-3 text-sm tracking-widest text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/30"
                 />
               </div>
@@ -105,8 +125,7 @@ export function AuthView() {
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
             <p className="text-xs text-secondary-foreground text-pretty">
               Credentials are validated against the National Medical Register.
-              This is a simulated login for hackathon demonstration — any values
-              will authenticate.
+              This is a simulated login for hackathon demonstration — use ID <strong>DOC-12345</strong> and PIN <strong>9988</strong> to authenticate.
             </p>
           </div>
         </form>
